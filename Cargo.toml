@@ -1,0 +1,31 @@
+[package]
+name = "noc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nannou = "0.19.0"
+rand = "0.8.5"
+rand_distr = "0.4.3"
+
+[[bin]]
+name = "random_walk"
+path = "ch_00/src/random_walk.rs"
+[[bin]]
+name = "perlin"
+path = "ch_00/src/perlin.rs"
+[[bin]]
+name = "perlin_spiral"
+path = "ch_00/src/perlin_spiral.rs"
+[[bin]]
+name = "gaussian"
+path = "ch_00/src/gaussian.rs"
+[[bin]]
+name = "random_bins"
+path = "ch_00/src/random_bins.rs"
+[[bin]]
+name = "bouncing_ball"
+path = "ch_01/src/bouncing_ball.rs"
+[[bin]]
+name = "particles"
+path = "particles/src/particles.rs"
