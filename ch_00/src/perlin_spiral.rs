@@ -53,26 +53,28 @@ fn view(app: &App, model: &Model, frame: Frame) {
         draw.polyline()
             .weight(1.0)
             .points(
-            model
-                .points
-                .clone()
-                .into_iter()
-                .map(|p| [p.x + random_range(0, 100) as f32, -p.y]),
-)
+                model
+                    .points
+                    .clone()
+                    .into_iter()
+                    .map(|p| [p.x + random_range(0, 100) as f32, -p.y]),
+            )
             .color(RED)
             .rotate(map_range(i as f32, 0.0, 20.0, 0.0, 2.0 * PI));
     });
 
-    draw.polyline()
-        .weight(1.0)
-        .points(
-            model
-                .points
-                .clone()
-                .into_iter()
-                .map(|p| [p.x + random_range(0, 100) as f32, p.y]),
-        )
-        .color(BLUE);
-
+    (0..20).for_each(|i| {
+        draw.polyline()
+            .weight(1.0)
+            .points(
+                model
+                    .points
+                    .clone()
+                    .into_iter()
+                    .map(|p| [p.x + random_range(0, 100) as f32, p.y]),
+            )
+            .color(BLUE)
+            .rotate(map_range(i as f32, 0.0, 20.0, PI / 2.0, 5.0 * PI / 2.0));
+    });
     draw.to_frame(app, &frame).unwrap();
 }
