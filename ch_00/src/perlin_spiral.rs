@@ -49,7 +49,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     draw.background().color(BLACK);
 
-    (0..20).for_each(|i| {
+    (0..20).for_each(|i: i32| {
         draw.polyline()
             .weight(1.0)
             .points(
@@ -63,7 +63,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
             .rotate(map_range(i as f32, 0.0, 20.0, 0.0, 2.0 * PI));
     });
 
-    (0..20).for_each(|i| {
+    (0..20).for_each(|i: i32| {
         draw.polyline()
             .weight(1.0)
             .points(
