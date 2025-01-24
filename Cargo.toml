@@ -29,5 +29,8 @@ path = "ch_00/src/random_bins.rs"
 name = "bouncing_ball"
 path = "ch_01/src/bouncing_ball.rs"
 [[bin]]
+name = "acceleration"
+path = "ch_01/src/acceleration.rs"
+[[bin]]
 name = "particles"
 path = "particles/src/particles.rs"
