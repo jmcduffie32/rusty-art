@@ -9,6 +9,7 @@ rand = "0.8.5"
 rand_distr = "0.4.3"
 rapier2d = { version = "0.23.0", features = [ "simd-stable" ] }
 nalgebra = { version = "0.33.2", features = [ "convert-glam017" ]}
+itertools = "0.14.0"
 
 [[bin]]
 name = "random_walk"
@@ -31,6 +32,9 @@ path = "ch_01/src/bouncing_ball.rs"
 [[bin]]
 name = "acceleration"
 path = "ch_01/src/acceleration.rs"
+[[bin]]
+name = "n_body"
+path = "ch_02/src/n_body.rs"
 [[bin]]
 name = "particles"
 path = "particles/src/particles.rs"
