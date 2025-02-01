@@ -26,13 +26,6 @@ impl Body {
         }
     }
 
-    fn update(&mut self) {
-        let delta_time = 1.0 / 60.0;
-        self.acceleration = self.net_force / self.mass;
-        self.velocity += self.acceleration * delta_time;
-        self.position += self.velocity * delta_time;
-    }
-
     fn apply_force(&mut self, force: Vec2) {
         self.net_force += force;
     }
@@ -69,10 +62,10 @@ fn model(app: &App) -> Model {
 
     let _window = app.new_window().size(w, h).view(view).build().unwrap();
     let mut bodies = vec![];
-    let n = 10;
+    let n = 3;
     for i in 0..n {
         let position: Vec2 = vec2(1.0, 0.0).rotate(i as f32 * TAU / n as f32) * 110.0;
-        let velocity: Vec2 = vec2(0.0, 75.0).rotate(i as f32 * TAU / n as f32);
+        let velocity: Vec2 = vec2(0.0, 25.0).rotate(i as f32 * TAU / n as f32);
         let acceleration: Vec2 = vec2(0.0, 0.0);
         let mass: f32 = 1.0;
         bodies.push(Body::new(position, velocity, acceleration, mass));
@@ -81,6 +74,8 @@ fn model(app: &App) -> Model {
 }
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
+    let delta_t: f32 = 1.0 / 60.0;
+
     // apply gravitational force between each pair of bodies
     for (i, j) in (0..model.bodies.len()).tuple_combinations() {
         let (left, right) = model.bodies.split_at_mut(j);
@@ -98,9 +93,33 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
         body2.apply_force(-force);
     }
 
-    // update each body and clear forces for the next iteration
     for body in model.bodies.iter_mut() {
-        body.update();
+        body.acceleration = body.net_force / body.mass;
+        body.velocity += body.acceleration * delta_t / 2.0;
+        body.position += body.velocity * delta_t;
+        body.reset_force();
+    }
+
+    // apply gravitational force between each pair of bodies
+    for (i, j) in (0..model.bodies.len()).tuple_combinations() {
+        let (left, right) = model.bodies.split_at_mut(j);
+        let body1: &mut Body = &mut left[i];
+        let body2: &mut Body = &mut right[0];
+        let displacement: Vec2 = body2.position - body1.position;
+        // kludge to avoid division by zero
+        if displacement.length() <= 1.0 {
+            continue;
+        }
+        let force: Vec2 =
+            G * (body1.mass * body2.mass) / displacement.length().pow(2) * displacement.normalize();
+
+        body1.apply_force(force);
+        body2.apply_force(-force);
+    }
+
+    for body in model.bodies.iter_mut() {
+        body.acceleration = body.net_force / body.mass;
+        body.velocity += body.acceleration * delta_t / 2.0;
         body.reset_force();
     }
 }
