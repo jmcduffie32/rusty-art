@@ -41,3 +41,6 @@ path = "ch_03/src/pendulum.rs"
 [[bin]]
 name = "particles"
 path = "particles/src/particles.rs"
+[[bin]]
+name = "agents"
+path = "ch_05/src/agents.rs"
