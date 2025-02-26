@@ -36,6 +36,9 @@ path = "ch_01/src/acceleration.rs"
 name = "n_body"
 path = "ch_02/src/n_body.rs"
 [[bin]]
+name = "electric_force"
+path = "ch_02/src/electric_force.rs"
+[[bin]]
 name = "pendulum"
 path = "ch_03/src/pendulum.rs"
 [[bin]]
