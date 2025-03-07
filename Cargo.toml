@@ -10,6 +10,11 @@ rand_distr = "0.4.3"
 rapier2d = { version = "0.23.0", features = [ "simd-stable" ] }
 nalgebra = { version = "0.33.2", features = [ "convert-glam017" ]}
 itertools = "0.14.0"
+[dependencies.uuid]
+version = "1.15.1"
+features = [
+    "v4",
+]
 
 [[bin]]
 name = "random_walk"
@@ -47,3 +52,9 @@ path = "particles/src/particles.rs"
 [[bin]]
 name = "agents"
 path = "ch_05/src/agents.rs"
+[[bin]]
+name = "flock"
+path = "ch_05/src/flock.rs"
+[[bin]]
+name = "flock_without_target"
+path = "ch_05/src/flock_without_target.rs"

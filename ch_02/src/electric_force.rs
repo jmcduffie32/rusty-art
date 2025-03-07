@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use nannou::prelude::*;
 
-const ELECTRIC_CONSTANT: f32 = 1.0e2;
+const ELECTRIC_CONSTANT: f32 = 1.0e3;
 
 fn main() {
     nannou::app(model).update(update).run();
