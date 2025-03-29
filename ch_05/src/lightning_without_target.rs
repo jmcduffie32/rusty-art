@@ -1,14 +1,14 @@
 use nannou::prelude::*;
 use uuid::Uuid;
 
-const VEHICLE_COUNT: usize = 400;
+const VEHICLE_COUNT: usize = 300;
 
-const SEPARATION_STRENGTH: f32 = 0.8;
-const ALIGN_STRENGTH: f32 = 1.0;
-const COHERE_STRENGTH: f32 = 0.5;
+const SEPARATION_STRENGTH: f32 = 0.9;
+const ALIGN_STRENGTH: f32 = 0.7;
+const COHERE_STRENGTH: f32 = 0.3;
 
-const FLASH_THRESHOLD: i32 = 100;
-const MAX_FLASH_TIMER: i32 = 150;
+const FLASH_THRESHOLD: i32 = 200;
+const MAX_FLASH_TIMER: i32 = 400;
 
 fn main() {
     nannou::app(model).update(update).run();
@@ -115,15 +115,19 @@ impl Vehicle {
 
     fn handle_flash(&mut self, vehicles: &Vec<Vehicle>) {
         self.flash_timer -= 1;
+        let mut flashing_count = 0;
         if self.flash_timer < 0 {
             for vehicle in vehicles.iter() {
                 if vehicle.id == self.id {
                     continue;
                 }
                 let d = self.position.distance_squared(vehicle.position);
-                if d < 30.0 * 30.0 && vehicle.flash_timer > FLASH_THRESHOLD {
+                if d < pow(35.0, 2) && vehicle.flash_timer > FLASH_THRESHOLD {
                     self.flash_timer = random_range(FLASH_THRESHOLD, MAX_FLASH_TIMER);
-                    break;
+                    flashing_count += 1;
+                    if flashing_count > 0 {
+                        break;
+                    }
                 }
             }
         }
@@ -152,12 +156,17 @@ impl Vehicle {
     }
 
     fn display(&self, draw: &Draw) {
-        let color: rgb::Rgb<nannou::color::encoding::Srgb, u8>;
-        if self.flash_timer > 5 {
-            color = RED;
-        } else {
-            color = BLACK;
+        let mut intensity = 0;
+        if self.flash_timer > FLASH_THRESHOLD {
+            intensity = map_range(self.flash_timer, FLASH_THRESHOLD, MAX_FLASH_TIMER, 0, 255);
         }
+        // make the gray base a bit more blue based on the intensity
+        let color = srgb(
+            GRAY.red,
+            GRAY.green,
+            (GRAY.blue as u32 + intensity as u32).clamp(0, 255) as u8,
+        );
+
         draw.tri()
             .points(
                 pt2(10.0, 0.0),
@@ -196,7 +205,7 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
 fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
 
-    draw.background().color(WHITE);
+    draw.background().color(DARKSLATEGRAY);
 
     for vehicle in model.vehicles.iter() {
         vehicle.display(&draw);
