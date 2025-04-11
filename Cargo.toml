@@ -67,3 +67,6 @@ path = "ch_05/src/lightning_without_target.rs"
 [[bin]]
 name = "ca_1"
 path = "ch_07/src/ca_01.rs"
+[[bin]]
+name = "ca_2"
+path = "ch_07/src/ca_02.rs"
