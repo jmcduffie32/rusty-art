@@ -70,3 +70,6 @@ path = "ch_07/src/ca_01.rs"
 [[bin]]
 name = "ca_2"
 path = "ch_07/src/ca_02.rs"
+[[bin]]
+name = "mandlebrot"
+path = "ch_08/src/mandlebrot.rs"
