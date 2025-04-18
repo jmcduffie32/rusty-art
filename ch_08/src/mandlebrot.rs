@@ -1,12 +1,15 @@
 use nannou::prelude::*;
+use rayon::prelude::*;
 
 fn main() {
-    nannou::app(model).run();
+    nannou::app(model)
+        .loop_mode(nannou::app::LoopMode::Wait)
+        .run();
 }
 
-const CYCLE_LIMIT: u32 = 5000;
-const WIDTH: u32 = 200;
-const HEIGHT: u32 = 200;
+const CYCLE_LIMIT: u32 = 10000;
+const WIDTH: u32 = 400;
+const HEIGHT: u32 = 400;
 
 struct Model {
     pixels: Vec<Vec<u32>>,
@@ -26,11 +29,11 @@ impl Model {
     }
 
     fn update_pixels(&mut self) {
-        let w: usize = WIDTH as usize;
-        let h: usize = HEIGHT as usize;
-        for i in 0..self.pixels.len() {
-            for j in 0..self.pixels[i].len() {
-                self.pixels[i][j] = mandlebrot(
+        let h = self.pixels.len();
+        self.pixels.par_iter_mut().enumerate().for_each(|(i, row)| {
+            let w = row.len();
+            row.iter_mut().enumerate().for_each(|(j, pixel)| {
+                *pixel = mandlebrot(
                     map_range(
                         i,
                         0,
@@ -46,8 +49,8 @@ impl Model {
                         self.scale + self.offset.1,
                     ),
                 );
-            }
-        }
+            });
+        });
     }
 }
 

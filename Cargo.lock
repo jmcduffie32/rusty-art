@@ -1397,6 +1397,7 @@ dependencies = [
  "rand 0.8.5",
  "rand_distr",
  "rapier2d",
+ "rayon",
  "uuid",
 ]
 
