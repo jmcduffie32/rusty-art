@@ -4,9 +4,9 @@ fn main() {
     nannou::app(model).run();
 }
 
-const CYCLE_LIMIT: u32 = 500;
-const WIDTH: u32 = 400;
-const HEIGHT: u32 = 400;
+const CYCLE_LIMIT: u32 = 5000;
+const WIDTH: u32 = 200;
+const HEIGHT: u32 = 200;
 
 struct Model {
     pixels: Vec<Vec<u32>>,
@@ -20,8 +20,8 @@ impl Model {
         let h: usize = HEIGHT as usize;
         Model {
             pixels: vec![vec![0; w]; h],
-            scale: 2.0,
-            offset: (0.0, 0.0),
+            scale: 1.0,
+            offset: (-0.743643887037151, 0.131825904205330),
         }
     }
 
@@ -31,8 +31,20 @@ impl Model {
         for i in 0..self.pixels.len() {
             for j in 0..self.pixels[i].len() {
                 self.pixels[i][j] = mandlebrot(
-                    map_range(i, 0, h, -self.scale, self.scale),
-                    map_range(j, 0, w, -self.scale, self.scale),
+                    map_range(
+                        i,
+                        0,
+                        h,
+                        -self.scale + self.offset.0,
+                        self.scale + self.offset.0,
+                    ),
+                    map_range(
+                        j,
+                        0,
+                        w,
+                        -self.scale + self.offset.1,
+                        self.scale + self.offset.1,
+                    ),
                 );
             }
         }
@@ -68,12 +80,12 @@ fn mandlebrot(a: f64, b: f64) -> u32 {
 fn key_pressed(_app: &App, model: &mut Model, key: Key) {
     // keypress events
     match key {
-        Key::I => model.scale *= 0.9,
+        Key::I => model.scale *= 0.6,
         Key::O => model.scale *= 1.1,
-        Key::Up => model.offset.1 += 10.0 * model.scale,
-        Key::Down => model.offset.1 -= 10.0 * model.scale,
-        Key::Left => model.offset.0 -= 10.0 * model.scale,
-        Key::Right => model.offset.0 += 10.0 * model.scale,
+        Key::W => model.offset.1 += 0.1 * model.scale,
+        Key::S => model.offset.1 -= 0.1 * model.scale,
+        Key::A => model.offset.0 -= 0.1 * model.scale,
+        Key::D => model.offset.0 += 0.1 * model.scale,
         _ => (),
     }
     model.update_pixels();
@@ -82,23 +94,28 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
 fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
 
-    draw.background().color(DARKSLATEGREY);
+    draw.background().color(BLACK);
     let h = HEIGHT as f32;
     let w = WIDTH as f32;
 
     for (i, row) in model.pixels.iter().enumerate() {
         for (j, &value) in row.iter().enumerate() {
-          // map iteration value to color wheel
-            let color = map_range(value, 0, CYCLE_LIMIT, 0.0, 1.0);
-            draw
-            .translate(vec3(model.offset.0 as f32, model.offset.1 as f32, 0.0))
-            .rect()
+            if value == CYCLE_LIMIT {
+                continue;
+            }
+
+            draw.rect()
                 .x_y(
-                    map_range(i as f32, 0.0, w, -w/ 2.0, w/ 2.0),
-                    map_range(j as f32, 0.0, h, -h/ 2.0, h/ 2.0),
+                    map_range(i as f32, 0.0, w, -w / 2.0, w / 2.0),
+                    map_range(j as f32, 0.0, h, -h / 2.0, h / 2.0),
                 )
                 .w_h(1.0, 1.0)
-                .color(hsl(color, 1.0, 0.5));
+                .color(hsl(
+                    (((value as f64 / CYCLE_LIMIT as f64 * 360.0).powf(1.5) % 360.0) / 360.0)
+                        as f32,
+                    0.5,
+                    (value as f64 / CYCLE_LIMIT as f64) as f32,
+                ));
         }
     }
 

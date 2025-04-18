@@ -1,11 +1,12 @@
 use nannou::prelude::*;
 use uuid::Uuid;
 
-const VEHICLE_COUNT: usize = 300;
+const VEHICLE_COUNT: usize = 150;
 
 const SEPARATION_STRENGTH: f32 = 0.9;
 const ALIGN_STRENGTH: f32 = 0.7;
 const COHERE_STRENGTH: f32 = 0.3;
+const SEEK_STRENGTH: f32 = 1.0;
 
 const FLASH_THRESHOLD: i32 = 200;
 const MAX_FLASH_TIMER: i32 = 400;
@@ -139,11 +140,12 @@ impl Vehicle {
         }
     }
 
-    fn update(&mut self, vehicles: &Vec<Vehicle>) {
+    fn update(&mut self, vehicles: &Vec<Vehicle>, target: Point2) {
         let separation_acceleration: Vec2 = self.separate(vehicles) * SEPARATION_STRENGTH;
         let align_acceleration: Vec2 = self.align(vehicles) * ALIGN_STRENGTH;
         let cohere_acceleration: Vec2 = self.cohere(vehicles) * COHERE_STRENGTH;
-        let total_accel: Vec2 = separation_acceleration + align_acceleration + cohere_acceleration;
+        let seek_acceleration: Vec2 = self.seek(target) * SEEK_STRENGTH;
+        let total_accel: Vec2 = seek_acceleration + separation_acceleration + align_acceleration + cohere_acceleration;
         self.acceleration = total_accel.clamp_length_max(self.max_acceleration);
 
         self.velocity += self.acceleration;
@@ -181,6 +183,7 @@ impl Vehicle {
 
 struct Model {
     vehicles: Vec<Vehicle>,
+    target: Point2,
 }
 
 fn model(app: &App) -> Model {
@@ -192,13 +195,18 @@ fn model(app: &App) -> Model {
     for _i in 0..VEHICLE_COUNT {
         vehicles.push(Vehicle::new());
     }
-    Model { vehicles }
+    let target = vec2(0.0, 0.0);
+    Model { vehicles, target }
 }
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
     let vehicles = model.vehicles.clone();
+    if random_range(0, 1000) < 5 {
+        model.target = vec2(random_range(-300.0, 300.0), random_range(-300.0, 300.0));
+    }
+    let target = model.target;
     for vehicle in model.vehicles.iter_mut() {
-        vehicle.update(&vehicles);
+        vehicle.update(&vehicles, target);
     }
 }
 
