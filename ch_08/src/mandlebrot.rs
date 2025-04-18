@@ -1,15 +1,16 @@
-use nannou::prelude::*;
+use nannou::{color::IntoLinSrgba, image::{DynamicImage, GenericImage}, prelude::*};
 use rayon::prelude::*;
 
 fn main() {
     nannou::app(model)
-        .loop_mode(nannou::app::LoopMode::Wait)
+        .loop_mode(nannou::app::LoopMode::NTimes { number_of_updates: 1000 })
+        .update(update)
         .run();
 }
 
 const CYCLE_LIMIT: u32 = 10000;
-const WIDTH: u32 = 400;
-const HEIGHT: u32 = 400;
+const WIDTH: u32 = 1000;
+const HEIGHT: u32 = 1000;
 
 struct Model {
     pixels: Vec<Vec<u32>>,
@@ -59,7 +60,7 @@ fn model(app: &App) -> Model {
         .new_window()
         .size(WIDTH, HEIGHT)
         .view(view)
-        .key_pressed(key_pressed)
+        // .key_pressed(key_pressed)
         .build()
         .unwrap();
     let mut model = Model::new();
@@ -94,33 +95,57 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
     model.update_pixels();
 }
 
+fn update(_app: &App, model: &mut Model, _update: Update) {
+    // update the model
+    model.scale *= 0.95;
+    model.update_pixels();
+}
+
 fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);
-    let h = HEIGHT as f32;
-    let w = WIDTH as f32;
 
+    let mut image: DynamicImage = DynamicImage::new_rgba8(WIDTH, HEIGHT);
     for (i, row) in model.pixels.iter().enumerate() {
         for (j, &value) in row.iter().enumerate() {
             if value == CYCLE_LIMIT {
                 continue;
             }
 
-            draw.rect()
-                .x_y(
-                    map_range(i as f32, 0.0, w, -w / 2.0, w / 2.0),
-                    map_range(j as f32, 0.0, h, -h / 2.0, h / 2.0),
-                )
-                .w_h(1.0, 1.0)
-                .color(hsl(
-                    (((value as f64 / CYCLE_LIMIT as f64 * 360.0).powf(1.5) % 360.0) / 360.0)
-                        as f32,
-                    0.5,
-                    (value as f64 / CYCLE_LIMIT as f64) as f32,
-                ));
+            let color = hsl(
+                (((value as f64 / CYCLE_LIMIT as f64 * 360.0).powf(1.5) % 360.0) / 360.0)
+                    as f32,
+                0.5,
+                (value as f64 / CYCLE_LIMIT as f64) as f32,
+            );
+            let color = color.into_lin_srgba();
+            let color = rgba(
+                (color.red * 255.0) as u8,
+                (color.green * 255.0) as u8,
+                (color.blue * 255.0) as u8,
+                (color.alpha * 255.0) as u8,
+            );
+
+            image.put_pixel(
+                i as u32,
+                j as u32,
+                nannou::image::Rgba([color.red, color.green, color.blue, color.alpha])
+            );
         }
     }
+    image.save(format!("mandelbrot_{}.png", frame.nth())).unwrap();
 
-    draw.to_frame(app, &frame).unwrap();
+    // let h = HEIGHT as f32;
+    // let w = WIDTH as f32;
+    // let texture = wgpu::Texture::from_image(
+    //     app,
+    //     &image,
+    // );
+    // draw.texture(&texture)
+    //     .x_y(0.0, 0.0)
+    //     .w_h(w, h);
+
+
+    // draw.to_frame(app, &frame).unwrap();
 }
