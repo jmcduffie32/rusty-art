@@ -1,16 +1,25 @@
-use nannou::{color::IntoLinSrgba, image::{DynamicImage, GenericImage}, prelude::*};
+use nannou::{
+    color::IntoLinSrgba,
+    image::{DynamicImage, GenericImage},
+    prelude::*,
+};
 use rayon::prelude::*;
 
-fn main() {
-    nannou::app(model)
-        .loop_mode(nannou::app::LoopMode::NTimes { number_of_updates: 1000 })
-        .update(update)
-        .run();
-}
-
-const CYCLE_LIMIT: u32 = 10000;
+const INITIAL_CYCLE_LIMIT: u32 = 100;
 const WIDTH: u32 = 1000;
 const HEIGHT: u32 = 1000;
+const STARTING_FRAME: u32 = 680;
+const CYCLE_GROWTH_RATE: f64 = 2.0;
+
+fn main() {
+    let mut model = Model::new();
+
+    for n in STARTING_FRAME..1000 {
+        model.scale *= 0.95;
+        model.update_pixels(n);
+        create_image(&model, n);
+    }
+}
 
 struct Model {
     pixels: Vec<Vec<u32>>,
@@ -24,55 +33,43 @@ impl Model {
         let h: usize = HEIGHT as usize;
         Model {
             pixels: vec![vec![0; w]; h],
-            scale: 1.0,
+            scale: 1.0 * 0.95.pow(STARTING_FRAME as f64),
             offset: (-0.743643887037151, 0.131825904205330),
         }
     }
 
-    fn update_pixels(&mut self) {
+    fn update_pixels(&mut self, frame_number: u32) {
         let h = self.pixels.len();
+        let limit = ( INITIAL_CYCLE_LIMIT as f64 * (frame_number as f64).powf(CYCLE_GROWTH_RATE)) as u32;
         self.pixels.par_iter_mut().enumerate().for_each(|(i, row)| {
             let w = row.len();
             row.iter_mut().enumerate().for_each(|(j, pixel)| {
-                *pixel = mandlebrot(
-                    map_range(
-                        i,
-                        0,
-                        h,
-                        -self.scale + self.offset.0,
-                        self.scale + self.offset.0,
-                    ),
-                    map_range(
-                        j,
-                        0,
-                        w,
-                        -self.scale + self.offset.1,
-                        self.scale + self.offset.1,
-                    ),
+                let a = map_range(
+                    i,
+                    0,
+                    h,
+                    -self.scale + self.offset.0,
+                    self.scale + self.offset.0,
                 );
+                let b = map_range(
+                    j,
+                    0,
+                    w,
+                    -self.scale + self.offset.1,
+                    self.scale + self.offset.1,
+                );
+
+                *pixel = mandlebrot(a, b, limit);
             });
         });
     }
 }
 
-fn model(app: &App) -> Model {
-    let _window = app
-        .new_window()
-        .size(WIDTH, HEIGHT)
-        .view(view)
-        // .key_pressed(key_pressed)
-        .build()
-        .unwrap();
-    let mut model = Model::new();
-    model.update_pixels();
-    model
-}
-
-fn mandlebrot(a: f64, b: f64) -> u32 {
+fn mandlebrot(a: f64, b: f64, limit: u32) -> u32 {
     let mut x = a.clone();
     let mut y = b.clone();
     let mut iteration = 0;
-    while x * x + y * y < 4.0 && iteration < CYCLE_LIMIT {
+    while x * x + y * y < 4.0 && iteration < limit{
         let xtemp = x * x - y * y + a;
         y = 2.0 * x * y + b;
         x = xtemp;
@@ -81,43 +78,19 @@ fn mandlebrot(a: f64, b: f64) -> u32 {
     iteration
 }
 
-fn key_pressed(_app: &App, model: &mut Model, key: Key) {
-    // keypress events
-    match key {
-        Key::I => model.scale *= 0.6,
-        Key::O => model.scale *= 1.1,
-        Key::W => model.offset.1 += 0.1 * model.scale,
-        Key::S => model.offset.1 -= 0.1 * model.scale,
-        Key::A => model.offset.0 -= 0.1 * model.scale,
-        Key::D => model.offset.0 += 0.1 * model.scale,
-        _ => (),
-    }
-    model.update_pixels();
-}
-
-fn update(_app: &App, model: &mut Model, _update: Update) {
-    // update the model
-    model.scale *= 0.95;
-    model.update_pixels();
-}
-
-fn view(app: &App, model: &Model, frame: Frame) {
-    let draw = app.draw();
-
-    draw.background().color(BLACK);
-
+fn create_image(model: &Model, frame_number: u32) {
     let mut image: DynamicImage = DynamicImage::new_rgba8(WIDTH, HEIGHT);
+    let limit = INITIAL_CYCLE_LIMIT as f64 * (frame_number as f64).powf(CYCLE_GROWTH_RATE);
     for (i, row) in model.pixels.iter().enumerate() {
         for (j, &value) in row.iter().enumerate() {
-            if value == CYCLE_LIMIT {
+            if value == limit as u32 {
                 continue;
             }
 
             let color = hsl(
-                (((value as f64 / CYCLE_LIMIT as f64 * 360.0).powf(1.5) % 360.0) / 360.0)
-                    as f32,
+                (((value as f64 / limit * 360.0).powf(1.5) % 360.0) / 360.0) as f32,
                 0.5,
-                (value as f64 / CYCLE_LIMIT as f64) as f32,
+                (value as f64 / limit) as f32,
             );
             let color = color.into_lin_srgba();
             let color = rgba(
@@ -130,22 +103,11 @@ fn view(app: &App, model: &Model, frame: Frame) {
             image.put_pixel(
                 i as u32,
                 j as u32,
-                nannou::image::Rgba([color.red, color.green, color.blue, color.alpha])
+                nannou::image::Rgba([color.red, color.green, color.blue, color.alpha]),
             );
         }
     }
-    image.save(format!("mandelbrot_{}.png", frame.nth())).unwrap();
-
-    // let h = HEIGHT as f32;
-    // let w = WIDTH as f32;
-    // let texture = wgpu::Texture::from_image(
-    //     app,
-    //     &image,
-    // );
-    // draw.texture(&texture)
-    //     .x_y(0.0, 0.0)
-    //     .w_h(w, h);
-
-
-    // draw.to_frame(app, &frame).unwrap();
+    image
+        .save(format!("mandelbrot_{}.png", frame_number))
+        .unwrap();
 }
