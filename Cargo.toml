@@ -76,3 +76,6 @@ path = "ch_07/src/ca_02.rs"
 [[bin]]
 name = "mandlebrot"
 path = "ch_08/src/mandlebrot.rs"
+[[bin]]
+name = "image_gen"
+path = "ga/src/image_gen.rs"
